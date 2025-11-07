@@ -250,10 +250,31 @@
 
   <!-- Script de Controle do Vídeo -->
   <script>
+  // ⚡ SÓ EXECUTA SE NÃO ESTIVER EM IFRAME
+  if (!window.INSIDE_IFRAME && !window.controladoBotoesIniciado) {
+    window.controladoBotoesIniciado = true;
+    
     console.log('🎬 Iniciando controle de tempo para exibir botões...');
     
+    let tentativas = 0;
+    const MAX_TENTATIVAS = 30;
+    
     function iniciarControle() {
-      if (!window.smartplayer || !window.smartplayer.instances || window.smartplayer.instances.length === 0) {
+      tentativas++;
+      
+      if (window.playerControladorAtivo) {
+        console.log('⚠️ Controlador já está ativo, ignorando nova tentativa');
+        return;
+      }
+      
+      if (tentativas > MAX_TENTATIVAS) {
+        console.error('❌ Timeout: Player não carregou em 30 segundos');
+        return;
+      }
+      
+      if (!window.smartplayer || 
+          !window.smartplayer.instances || 
+          window.smartplayer.instances.length === 0) {
         setTimeout(iniciarControle, 1000);
         return;
       }
@@ -268,13 +289,12 @@
       }
       
       console.log('🎥 Vídeo encontrado!', video);
+      window.playerControladorAtivo = true;
       
-      // ⚙️ CONFIGURE AQUI O TEMPO (em segundos)
-      const TEMPO_PITCH = 199; // 4min 29s
+      const TEMPO_PITCH = 199;
       let botoesMostrados = false;
       
-      // Monitora o tempo do vídeo a cada segundo
-      setInterval(() => {
+      const intervalo = setInterval(() => {
         const tempoAtual = video.currentTime || 0;
         
         if (tempoAtual >= TEMPO_PITCH && !botoesMostrados) {
@@ -282,19 +302,26 @@
           console.log('🎯 Tempo atingido! Exibindo botões...');
           
           const botoesDiv = document.getElementById('callaction-buttons');
-          botoesDiv.style.display = 'block';
-          botoesDiv.classList.add('fade-in');
+          if (botoesDiv) {
+            botoesDiv.style.display = 'block';
+            botoesDiv.classList.add('fade-in');
+            
+            setTimeout(() => {
+              botoesDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }, 500);
+          }
           
-          // Rola suavemente até os botões
-          setTimeout(() => {
-            botoesDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          }, 500);
+          clearInterval(intervalo);
         }
       }, 1000);
+      
+      console.log('✅ Monitoramento iniciado com sucesso!');
     }
     
-    // Aguarda o player carregar
     setTimeout(iniciarControle, 3000);
-  </script>
+  } else if (window.INSIDE_IFRAME) {
+    console.log('🚫 Dentro de iframe - Scripts de controle não serão executados');
+  }
+</script>
 </body>
 </html>
