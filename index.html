@@ -4,6 +4,17 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Primeira Aula</title>
+  <script>
+    if (window.self !== window.top) {
+      console.log('🚫 Página dentro de iframe - bloqueando inicialização');
+      window.INSIDE_IFRAME = true;
+      // Opcional: Force break out
+      // try { window.top.location.href = window.self.location.href; } catch(e) {}
+    } else {
+      window.INSIDE_IFRAME = false;
+      console.log('✅ Página normal (fora de iframe)');
+    }
+  </script>
   <style>
     body {
       margin: 0;
